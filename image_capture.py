@@ -18,7 +18,7 @@ def find_next_counter(path):
     return max_counter + 1
 
 # Initialize webcam
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 if not cap.isOpened():
     raise IOError("Cannot open webcam")
@@ -33,17 +33,18 @@ counter = find_next_counter(file_path)
 print(counter)
 
 while True:
-    ret, f = cap.read()  # Read frame from the camera
+    ret, frame = cap.read()  # Read frame from the camera
     if not ret:
         break  # Break the loop if there are video
 
-    cv2.imshow('Webcam Live', f)  # Display video stream
+    cv2.imshow('Webcam Live', frame)  # Display video stream
 
     c = cv2.waitKey(1)  # Wait for a key press (1 millisecond)
     if c & 0xFF == ord('c'):  # If 'c' is pressed, capture image
         img_name = f"picture_{counter}.jpg"
+        gray_image = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) 
         path = os.path.join(file_path, img_name)
-        cv2.imwrite(path, f)
+        cv2.imwrite(path, gray_image)
         counter += 1
     elif c & 0xFF == ord('q'):  # If 'q' is pressed, quit
         break
