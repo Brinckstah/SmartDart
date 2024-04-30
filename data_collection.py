@@ -7,6 +7,7 @@ from gpiozero import LED
 from gpiozero.pins.pigpio import PiGPIOFactory
 from time import sleep
 import math
+import threading
 
 led_1 = LED(5)
 led_2 = LED(6)
@@ -59,8 +60,15 @@ def find_next_counter(path):
                 max_counter = counter
     return max_counter + 1
 
+def control_servos():
+    controller = servo_controller()
+    while True:
+        controller.servo_2_setup()
+        controller.servo_1_setup()
+
 
 cv2.startWindowThread()
+threading.Thread(target=control_servos, daemon=True).start()
 
 picam2 = Picamera2()
 picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (720, 720)}))
@@ -76,11 +84,8 @@ controller = servo_controller()
 while True:
     led_1.on()
     led_2.on()
-    controller.servo_2_setup()
-    controller.servo_1_setup()
     
     im = picam2.capture_array()
-
 
     cv2.imshow("Camera", im)
     c = cv2.waitKey(1)
