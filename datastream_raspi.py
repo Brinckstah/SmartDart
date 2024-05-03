@@ -10,8 +10,11 @@ def setup_annotators():
     return bounding_box_annotator, label_annotator
 
 
- # Process a frames for object detection and annotation
+ # Process frames for object detection and annotation
 def process_frame(frame, model, bounding_box_annotator, label_annotator):
+    if frame.shape[2] == 4:
+    # Convert from RGBA to RGB
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
     result = model.predict(frame)[0]
     detections = sv.Detections.from_ultralytics(result)
     print(detections.confidence)
@@ -27,7 +30,7 @@ def main():
     picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (720, 720)}))
     picam2.start()
 
-    model = YOLO(r"C:\Users\tbmor\BachelorData\SmartDart\runs\detect\train\weights\best.pt")
+    model = YOLO(r"/home/thomas/bachelor/SmartDart/runs/detect/train/weights/best.pt")
     model.conf = 0.25  # Set confidence threshold
 
     bounding_box_annotator, label_annotator = setup_annotators()
