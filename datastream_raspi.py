@@ -64,14 +64,18 @@ def main():
     servo_2 = Servo(12, min_pulse_width = 0.5/1000, max_pulse_width = 2.5/1000, pin_factory = factory)
     servo_3 = Servo(17, min_pulse_width = 0.5/1000, max_pulse_width = 2.5/1000, pin_factory = factory)
     servo_2.value = math.sin(math.radians(230))
-    servo_3.value = math.sin(math.radians(0))
+    servo_3.value = math.sin(math.radians(190))
 
-
-    threading.Thread(target=stepper_motor,daemon=True).start()
+    stepper_start = 0
+    
     while True:
 
         if GPIO.input(16) == GPIO.LOW:
             sleep(0.5)
+            if stepper_start == 0:
+                threading.Thread(target=stepper_motor,daemon=True).start()
+                stepper_start = 1
+            
             darts, lcd_mode = lcd_dart_selection(lcd,lcd_mode)
             
         

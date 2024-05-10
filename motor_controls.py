@@ -3,17 +3,15 @@ import math
 import RPi.GPIO as GPIO
 
 
-
 def reloading_servo(servo_3):
     sleep(1)
     for i in range(0,90):
         servo_3.value = math.sin(math.radians(i))
         sleep(0.0001)
     sleep(1)
-    for i in range(90,0,-1):
-        servo_3.value = math.sin(math.radians(i))
-        sleep(0.01)
+    servo_3.value = math.sin(math.radians(190))
     sleep(1)
+
 
 
 def servo_2_setup(servo_2):
