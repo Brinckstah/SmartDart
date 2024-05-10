@@ -27,19 +27,19 @@ def servo_2_setup(servo_2):
 def servo_1_setup(servo_1, dart_quality):
 
         if(dart_quality == "good"):
-            for i in range(0,40):
+            for i in range(-3,40):
                 servo_1.value = math.sin(math.radians(i))
                 sleep(0.01)
             sleep(1)
-            for i in range(40,-1,-1):
+            for i in range(40,-4,-1):
                 servo_1.value = math.sin(math.radians(i))
                 sleep(0.01)
         else:
-            for i in range(180,230):
+            for i in range(183,230):
                 servo_1.value = math.sin(math.radians(i))
                 sleep(0.01)
             sleep(1)
-            for i in range(230,180,-1):
+            for i in range(230,182,-1):
                 servo_1.value = math.sin(math.radians(i))
                 sleep(0.01)
 
@@ -59,7 +59,10 @@ def stepper_motor():
         [0,0,1,0],
         [0,0,1,1],
         [0,0,0,1],
-        [1,0,0,1]
+        [1,0,0,1],
+        [1,0,0,0],
+        [1,1,0,0],
+        [0,1,0,0]
     ]
 
     halfstep_seq_reverse = [
@@ -70,19 +73,22 @@ def stepper_motor():
         [0,1,1,0],
         [0,1,0,0],
         [1,1,0,0],
-        [1,0,0,0]
+        [1,0,0,0],
+        [1,0,0,1],
+        [0,0,0,1],
+        [0,0,1,1]
     ]
 
 
     while(True):
         for i in range(512):
-            for halfstep in range(8):
+            for halfstep in range(10):
                 for pin in range(4):
                     GPIO.output(control_pins[pin],halfstep_seq[halfstep][pin])
                 sleep(0.007)
 
         for i in range(512):
-            for halfstep in range(8):
+            for halfstep in range(10):
                 for pin in range(4):
                     GPIO.output(control_pins[pin], halfstep_seq_reverse[halfstep][pin])
                 sleep(0.007)
