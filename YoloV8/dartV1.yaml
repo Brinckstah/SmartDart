@@ -1,11 +1,11 @@
 # Data
 path: C:\Users\tbmor\BachelorData\SmartDart\YoloV8
 train: images/train
-val: images/train # Change later
+val: images/val
 
-nc: 6 # number of classes
+nc: 5 # number of classes
 
 # Classes
-names: ['good-dart', 'bent', 'cut', 'headless', 'head', 'wrong-way']  
+names: ['good-dart', 'bent', 'cut', 'headless', 'wrong-way']  
   #0: Good dart,
   #1: Bad dart
