@@ -82,13 +82,13 @@ def stepper_motor():
 
     while(True):
         for i in range(512):
-            for halfstep in range(10):
+            for halfstep in range(11):
                 for pin in range(4):
                     GPIO.output(control_pins[pin],halfstep_seq[halfstep][pin])
                 sleep(0.007)
 
         for i in range(512):
-            for halfstep in range(10):
+            for halfstep in range(11):
                 for pin in range(4):
                     GPIO.output(control_pins[pin], halfstep_seq_reverse[halfstep][pin])
                 sleep(0.007)
