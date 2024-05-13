@@ -1,99 +1,47 @@
-import cv2
-from ultralytics import YOLO
-import supervision as sv
-from picamera2 import Picamera2
-from RPLCD.gpio import CharLCD
 from RPi import GPIO
 from time import sleep
-from gpiozero import Servo
-from gpiozero import LED
-from gpiozero.pins.pigpio import PiGPIOFactory
-from motor_controls import reloading_servo, servo_1_setup, servo_2_setup, stepper_motor
-from lcd import lcd_init, lcd_dart_selection, lcd_processing, lcd_finished
+from motor_controls import motor_controller
+from lcd import lcd_controller
+from camera import camera_controller
 import threading
-import math
-
-
-# Setup and return bounding box and label annotators
-def setup_annotators():
-    bounding_box_annotator = sv.BoundingBoxAnnotator()
-    label_annotator = sv.LabelAnnotator()
-    return bounding_box_annotator, label_annotator
-
-
- # Process frames for object detection and annotation
-def process_frame(frame, model, bounding_box_annotator, label_annotator):
-    if frame.shape[2] == 4:
-    # Convert from RGBA to RGB
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
-    result = model.predict(frame)[0]
-    detections = sv.Detections.from_ultralytics(result)
-    print(detections.confidence)
-
-    labels = [model.model.names[class_id] for class_id in detections.class_id]
-    
-    annotated_frame = bounding_box_annotator.annotate(scene=frame, detections=detections)
-    return labels
 
 
 def main():
-    cv2.startWindowThread()
-    picam2 = Picamera2()
-    picam2.configure(picam2.create_preview_configuration(main={"format": 'XRGB8888', "size": (720, 720)}))
-    picam2.start()
-
-    model = YOLO(r"/home/filip/bachelor/SmartDart/runs/detect/train/weights/best.pt")
-    model.conf = 0.25  # Set confidence threshold
-
-    bounding_box_annotator, label_annotator = setup_annotators()
-
+    
     GPIO.cleanup()
     GPIO.setmode(GPIO.BCM)
-    GPIO.setup(16,GPIO.IN,pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(26,GPIO.IN,pull_up_down=GPIO.PUD_UP)
-    led_1 = LED(5)
-    led_2 = LED(6)
+    start_button = GPIO.setup(16,GPIO.IN,pull_up_down=GPIO.PUD_UP)
+    confirm_button = GPIO.setup(26,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 
-    lcd = CharLCD(pin_rs=22, pin_e=23,pins_data=[9,25,11,8],numbering_mode=GPIO.BCM,cols=16,rows=2,charmap="A02")
-    lcd_mode = 0
-    lcd_init(lcd)
-
-
-    factory = PiGPIOFactory()
-    servo_1 = Servo(18, min_pulse_width = 0.5/1000, max_pulse_width = 2.5/1000, pin_factory = factory)
-    servo_2 = Servo(12, min_pulse_width = 0.5/1000, max_pulse_width = 2.5/1000, pin_factory = factory)
-    servo_3 = Servo(17, min_pulse_width = 0.5/1000, max_pulse_width = 2.5/1000, pin_factory = factory)
-    servo_1.value = math.sin(math.radians(183))
-    servo_2.value = math.sin(math.radians(230))
-    servo_3.value = math.sin(math.radians(190))
-
+    camera = camera_controller()
+    lcd = lcd_controller
+    motors = motor_controller()
+    
+    lcd.lcd_init()
     stepper_start = 0
     
     while True:
 
-        if GPIO.input(16) == GPIO.LOW:
+        if start_button == GPIO.LOW:
             sleep(0.5)
             if stepper_start == 0:
-                threading.Thread(target=stepper_motor,daemon=True).start()
+                threading.Thread(target=motors.stepper_motor,daemon=True).start()
                 stepper_start = 1
             
-            darts, lcd_mode = lcd_dart_selection(lcd,lcd_mode)
+            darts = lcd.lcd_dart_selection()
             
         
-        if GPIO.input(26) == GPIO.LOW:
+        if confirm_button == GPIO.LOW:
             sleep(0.5)
-            lcd_processing(lcd, darts)
+            lcd.lcd_processing(darts)
             good_darts = 0
 
-            led_1.on()
-            led_2.on()
-
             while(darts > good_darts):
-                servo_2_setup(servo_2)
+                motors.servo_2_setup()
 
-                im = picam2.capture_array()
+                im = camera.image_capture()
                 
-                processed_labels = process_frame(im, model, bounding_box_annotator, label_annotator)
+                processed_labels = camera.process_frame(im)
                 
                 if not processed_labels:
                      continue
@@ -101,22 +49,16 @@ def main():
                 if all(label == "good-dart" for label in processed_labels):
                     good_darts += 1
                     dart_quality = "good"
-                    servo_1_setup(servo_1, dart_quality)
-                    reloading_servo(servo_3)
+                    motors.servo_1_setup(dart_quality)
+                    motors.reloading_servo()
 
                 else:
                     dart_quality = "bad"
-                    servo_1_setup(servo_1,dart_quality)
+                    motors.servo_1_setup(dart_quality)
             
-            led_1.off()
-            led_2.off()
+            lcd.lcd_finished()
             
-            lcd_finished(lcd)
-            
-            
-
-
-        cv2.destroyAllWindows()
+        camera.cv2_cleanup()
 
 if __name__ == "__main__":
     main()
