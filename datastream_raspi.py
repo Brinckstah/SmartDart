@@ -10,11 +10,11 @@ def main():
     
     GPIO.cleanup()
     GPIO.setmode(GPIO.BCM)
-    start_button = GPIO.setup(16,GPIO.IN,pull_up_down=GPIO.PUD_UP)
-    confirm_button = GPIO.setup(26,GPIO.IN,pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(16,GPIO.IN,pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(26,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 
     camera = camera_controller()
-    lcd = lcd_controller
+    lcd = lcd_controller()
     motors = motor_controller()
     
     lcd.lcd_init()
@@ -22,7 +22,7 @@ def main():
     
     while True:
 
-        if start_button == GPIO.LOW:
+        if GPIO.input(16) == GPIO.LOW:
             sleep(0.5)
             if stepper_start == 0:
                 threading.Thread(target=motors.stepper_motor,daemon=True).start()
@@ -31,7 +31,7 @@ def main():
             darts = lcd.lcd_dart_selection()
             
         
-        if confirm_button == GPIO.LOW:
+        if GPIO.input(26) == GPIO.LOW:
             sleep(0.5)
             lcd.lcd_processing(darts)
             good_darts = 0
@@ -58,7 +58,6 @@ def main():
             
             lcd.lcd_finished()
             
-        camera.cv2_cleanup()
 
 if __name__ == "__main__":
     main()

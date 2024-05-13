@@ -9,7 +9,10 @@ class motor_controller():
         self.factory = PiGPIOFactory()
         self.servo_1 = Servo(18, min_pulse_width = 0.5/1000, max_pulse_width = 2.5/1000, pin_factory = self.factory)
         self.servo_2 = Servo(12, min_pulse_width = 0.5/1000, max_pulse_width = 2.5/1000, pin_factory = self.factory)
-        self.servo_3 = Servo(12, min_pulse_width = 0.5/1000, max_pulse_width = 2.5/1000, pin_factory = self.factory)
+        self.servo_3 = Servo(17, min_pulse_width = 0.5/1000, max_pulse_width = 2.5/1000, pin_factory = self.factory)
+        self.servo_1.value = math.sin(math.radians(183))
+        self.servo_2.value = math.sin(math.radians(230))
+        self.servo_3.value = math.sin(math.radians(190))
 
         self.control_pins = [2,3,4,14]
 
